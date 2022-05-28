@@ -11,7 +11,7 @@
 #include <arpa/inet.h>
 
 
-#define DEFAULT_PORT 8001
+#define DEFAULT_PORT 8004
 #define ERROR_S "SERVER ERROR.."
 #define BUFFER_SIZE 1024
 
@@ -59,7 +59,11 @@ int main(int argc, char* argv[])
 	{
 		strcpy(buffer, "=> Server connected!\n");
 		std::cout << ERROR_S << "Server connect" << std::endl;
-		// new Client();
-		server = -1;
+		std::cout << buffer << std::endl;
+		send(server, buffer, strlen(buffer), 0);
+
+		std::cout << "Client:" << std::endl;
+		recv(server, buffer, strlen(buffer), 0);
+		std::cout << buffer << std::endl;
 	}
 }
