@@ -59,6 +59,7 @@ int main(int argc, char* argv[])
 	{
 		strcpy(buffer, "=> Server connected!\n");
 		std::cout << ERROR_S << "Server connect" << std::endl;
+		// new Client();
 		server = -1;
 	}
 }
