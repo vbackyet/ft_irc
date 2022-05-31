@@ -11,7 +11,7 @@
 #include <arpa/inet.h>
 
 
-#define DEFAULT_PORT 8004
+#define DEFAULT_PORT 8005
 #define ERROR_S "SERVER ERROR.."
 #define BUFFER_SIZE 1024
 
@@ -47,23 +47,25 @@ int main(int argc, char* argv[])
 	std::cout << "SERVER: " << "listening clients...." <<std::endl;
 
 	listen(client, 1);
-
-	server = accept(client, reinterpret_cast<struct sockaddr*>(&server_address), &size);
-	if (server < 0)
+	while(true)
 	{
-		std::cout << ERROR_S << "Cant accept the client!" << std::endl;
-	}
-	char buffer[BUFFER_SIZE];
-	bool isExit = false;
-	while(server > 0)
-	{
-		strcpy(buffer, "=> Server connected!\n");
-		std::cout << ERROR_S << "Server connect" << std::endl;
-		std::cout << buffer << std::endl;
-		send(server, buffer, strlen(buffer), 0);
+		server = accept(client, reinterpret_cast<struct sockaddr*>(&server_address), &size);
+		if (server < 0)
+		{
+			std::cout << ERROR_S << "Cant accept the client!" << std::endl;
+		}
+		char buffer[BUFFER_SIZE];
+		bool isExit = false;
+		// while(server > 0)
+		// {
+			strcpy(buffer, "=> Server connected!\n");
+			std::cout << ERROR_S << "Server connect" << std::endl;
+			std::cout << buffer << std::endl;
+			send(server, buffer, strlen(buffer), 0);
 
-		std::cout << "Client:" << std::endl;
-		recv(server, buffer, strlen(buffer), 0);
-		std::cout << buffer << std::endl;
+			std::cout << "Client:" << std::endl;
+			recv(server, buffer, strlen(buffer), 0);
+			std::cout << buffer << std::endl;
+		// }
 	}
 }
