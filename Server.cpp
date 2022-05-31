@@ -9,7 +9,14 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ioctl.h>
+#include <sys/poll.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <netinet/in.h>
+#include <errno.h>
 
 #define DEFAULT_PORT 8005
 #define ERROR_S "SERVER ERROR.."
@@ -17,15 +24,28 @@
 
 
 
+//  struct pollfd
+// {
+// 	int fd;
+// 	int events;
+// };
+
+
 int main(int argc, char* argv[])
 {
+	int    len, rc, on = 1;
 	int client;
 	int server;
-
+	// pollfd fds[200];
+	struct pollfd fds[200];
+	int    nfds = 1;
 
 
 	struct sockaddr_in server_address;
-
+  /*************************************************************/
+  /* Create an AF_INET6 stream socket to receive incoming      */
+  /* connections on                                            */
+  /*************************************************************/
 	client = socket(AF_INET, SOCK_STREAM, 0); // создаю сокет
 	if (client < 0)
 	{
@@ -47,8 +67,32 @@ int main(int argc, char* argv[])
 	std::cout << "SERVER: " << "listening clients...." <<std::endl;
 
 	listen(client, 1);
+
+	/*************************************************************/
+	/* Initialize the pollfd structure                           */
+	/*************************************************************/
+	memset(fds, 0 , sizeof(fds));
+	/*************************************************************/
+ 	/* Set up the initial listening socket                        */
+ 	/*************************************************************/
+	fds[0].fd = client;
+  	fds[0].events = POLLIN;
 	while(true)
 	{
+		/***********************************************************/
+		/* Call poll() and wait 3 minutes for it to complete.      */
+		/***********************************************************/
+    	std::cout <<"Waiting on poll()...\n";
+    	rc = poll(fds, 1, 100);
+		/***********************************************************/
+		/* Check to see if the poll call failed.                   */
+		/***********************************************************/
+		if (rc < 0)
+		{
+		perror("  poll() failed");
+		break;
+		}
+
 		server = accept(client, reinterpret_cast<struct sockaddr*>(&server_address), &size);
 		if (server < 0)
 		{
