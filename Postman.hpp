@@ -1,9 +1,4 @@
-#ifndef __POSTMAN_H__
-#define __POSTMAN_H__
-
-
-
-
+#pragma once 
 class Postman
 {
 
@@ -15,5 +10,4 @@ class Postman
         int  sendRequest(int fd, char *msg);
 
 
-}
-#endif // __POSTMAN_H__
+};

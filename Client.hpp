@@ -5,9 +5,9 @@ class Client
 {
 	private:
 		std::string name;
-		int fd
+		int fd;
 	public:
-		set_name();
+		int set_name();
 
 
 };
