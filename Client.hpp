@@ -10,4 +10,4 @@ class Client
 		set_name();
 
 
-}
+};

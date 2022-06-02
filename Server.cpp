@@ -17,11 +17,14 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <errno.h>
+#include <vector>
 
-#define DEFAULT_PORT 8003
+
+#include "Postman.hpp"
+#define DEFAULT_PORT 8004
 #define ERROR_S "SERVER ERROR.."
 #define BUFFER_SIZE 1024
-
+#define EXIT_FAILURE 1
 
 
 //  struct pollfd
@@ -30,21 +33,76 @@
 // 	int events;
 // };
 
+void Server::remove(pollfd *iter)
+{
 
-int main(int argc, char* argv[])
+}
+
+
+
+void Server::sendback(int fd)
+{
+
+}
+
+
+void Server::receive(int fd)
+{
+	Postman my_postman;
+    char msg[BUFFER_SIZE];
+
+    bzero(&msg, sizeof(msg));
+    if (recv(fd, &msg, BUFFER_SIZE - 1, 0) < 0) {
+        std::cerr << "recv() failure" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    my_postman.sendRequest(fd, msg);
+}
+
+// POLLIN
+// В очереди чтения истока есть неприоритетное сообщение или сообщение, передающее дескриптор файла (см. I_RECVFD). 
+// Этот флаг устанавливается и в том случае, если сообщение имеет нулевую длину. В компоненте revents этот флаг не может присутствовать одновременно с 
+// флагом POLLPRI.
+
+void Server::process_users(pollfd *iter)
+{
+	if (iter->revents & POLLHUP) {
+		remove(iter);
+		// break;
+	}
+	if (iter->revents & POLLOUT)
+		sendback(iter->fd);
+
+	if (iter->revents & POLLIN)
+		receive(iter->fd);
+
+	// if (!processed(iter->fd)) {
+	// 	remove(iter);
+	// 	break;
+	// }
+}
+
+
+
+int Server::main(int argc, char* argv[])
 {
 	int  len, rc, on = 1;
 	int main_fd;
 	int server;
 	// pollfd fds[200];
-	struct pollfd fds[200];
+	std::vector <pollfd> fds;
+	// struct pollfd fds[200];
 	int    nfds = 1;
 	int new_sd = 0;
 	char buffer[BUFFER_SIZE];
-
+	
 
 	struct sockaddr_in server_address;
-	main_fd = socket(AF_INET, SOCK_STREAM, 0); // создаю сокет
+	if (main_fd = socket(AF_INET, SOCK_STREAM, 0) == -1)
+	{
+		std::cerr << "poll failure" << std::endl;
+		exit(EXIT_FAILURE);
+	}
 	if (main_fd < 0)
 	{
 		std::cout << "Oshibka" << std::endl;
@@ -66,80 +124,60 @@ int main(int argc, char* argv[])
 	std::cout << "SERVER: " << "listening clients...." <<std::endl;
 
 	listen(main_fd, 1);
-
-	/*************************************************************/
-	/* Initialize the pollfd structure                           */
-	/*************************************************************/
-	memset(fds, 0 , sizeof(fds));
-	/*************************************************************/
- 	/* Set up the initial listening socket                        */
- 	/*************************************************************/
-	fds[0].fd = main_fd;
-  	fds[0].events = POLLIN;
+	fds.push_back((pollfd){main_fd, POLLIN, 0});
 	int current_size = 1;
 	while(true)
 	{
 		new_sd = 0;
-    	rc = poll(fds, current_size, 10);
+    	rc = poll(fds.data(), current_size, 10);
 		if (rc < 0)
 		{
 			perror("  poll() failed");
 			break;
 		}
-		std::cout << "Puk:" <<current_size << "\n";
+		// std::cout << "Puk:" <<current_size << "\n";
 		int num_fds = current_size;
 		for (int i = 0; i < num_fds; i++)
 		{
 			// sleep(1);
 			if (fds[i].fd == main_fd)
 			{
-				std::cout << "here main" << std::endl;
 				while (new_sd != -1)
 				{
-					std::cout << "here 22" << std::endl;
-					// while(1);
 					new_sd = accept(main_fd, NULL, NULL);
-					std::cout << "new sd: " << new_sd << std::endl;
-					// sleep(5);
 					if (new_sd < 0)
 					{
 						break;
 					}
-				std::cout << "  New incoming connection " << std::endl;
-				// usleep(5000000);
-				// printf("  New incoming connection - %d\n", new_sd);
-				fds[num_fds].fd = new_sd;
-				fds[num_fds].events = POLLIN;
+				fds.push_back((pollfd){new_sd, POLLIN | POLLOUT | POLLHUP, 0}); // добавляем не главный сервер
 				current_size++;
-				std::cout << "here " << std::endl;
+				// std::cout << "here " << std::endl;
 				}
 			}
 			else
 			{
 				while(true)
 				{
-					rc = recv(fds[i].fd, buffer, sizeof(buffer), 0);
-					if (rc < 0)
-					{
-						if (errno != EWOULDBLOCK)
-						{
-						perror("  recv() failed");
-						//   close_conn = TRUE;
-						}
-						break;
-					}
-					if (rc == 0)
-					{
-
-						break;
-				
-					}
-						std::cout << buffer << std::endl;
-					rc = send(fds[i].fd, buffer, strlen(buffer), 0);
-					if (rc < 0)
-					{
-						break;
-					}
+					// rc = recv(fds[i].fd, buffer, sizeof(buffer), 0);
+					// if (rc < 0)
+					// {
+					// 	if (errno != EWOULDBLOCK)
+					// 	{
+					// 	perror("  recv() failed");
+					// 	}
+					// 	break;
+					// }
+					// if (rc == 0)
+					// {
+					// 	break;
+					// }
+					// std::cout << buffer << std::endl;
+					// rc = send(fds[i].fd, buffer, strlen(buffer), 0);
+					// if (rc < 0)
+					// {
+					// 	break;
+					// }
+					process_users(&fds[i]);
 					}
 			}
 
