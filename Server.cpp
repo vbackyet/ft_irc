@@ -79,6 +79,7 @@ int main(int argc, char* argv[])
 	int current_size = 1;
 	while(true)
 	{
+		new_sd = 0;
     	rc = poll(fds, current_size, 10);
 		if (rc < 0)
 		{
@@ -89,28 +90,23 @@ int main(int argc, char* argv[])
 		int num_fds = current_size;
 		for (int i = 0; i < num_fds; i++)
 		{
+			// sleep(1);
 			if (fds[i].fd == main_fd)
 			{
+				std::cout << "here main" << std::endl;
 				while (new_sd != -1)
 				{
 					std::cout << "here 22" << std::endl;
 					// while(1);
 					new_sd = accept(main_fd, NULL, NULL);
 					std::cout << "new sd: " << new_sd << std::endl;
-					sleep(5);
+					// sleep(5);
 					if (new_sd < 0)
 					{
-						std::cout << "   accept() failed " << std::endl;
-						if (errno != EWOULDBLOCK)
-						{
-							std::cout << "   accept() failed " << std::endl;
-						perror("  accept() failed");
-						// end_server = TRUE;
-						}
 						break;
 					}
 				std::cout << "  New incoming connection " << std::endl;
-				usleep(5000000);
+				// usleep(5000000);
 				// printf("  New incoming connection - %d\n", new_sd);
 				fds[num_fds].fd = new_sd;
 				fds[num_fds].events = POLLIN;
