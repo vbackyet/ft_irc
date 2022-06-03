@@ -21,23 +21,28 @@
 #include "Server.hpp"
 
 #include "Postman.hpp"
-// #define DEFAULT_PORT 8005
+#define DEFAULT_PORT 8006
 // #define ERROR_S "SERVER ERROR.."
 // #define BUFFER_SIZE 1024
 // #define EXIT_FAILURE 1
 
 
-Server::Server(int argc, char** argv)
+Server::Server(int argc, char* argv[])
 {
 	this->argc = argc;
 	this->argv = argv;
-	main();
+	main1();
 }
 
 
-int Server::main()
+int Server::main1()
 {
-	if (main_fd = socket(AF_INET, SOCK_STREAM, 0) == -1)
+	 int  len = 1;
+	int  rc = 1;
+	int  on = 1;
+			int    nfds = 1;
+		int new_sd = 0;
+	if ((main_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
 		std::cerr << "poll failure" << std::endl;
 		exit(EXIT_FAILURE);
@@ -56,7 +61,7 @@ int Server::main()
 	int ret = bind(main_fd, reinterpret_cast<struct sockaddr*>(&server_address), sizeof(server_address));
 	if (ret < 0)	
 	{
-        // std::cout << <<std::endl;
+        std::cout << ret <<std::endl;
 		std::cout << "Error bind : сокет уже используется" <<std::endl;
 		return -1;
 	}
@@ -77,6 +82,7 @@ int Server::main()
 		}
 		// std::cout << "Puk:" <<current_size << "\n";
 		int num_fds = current_size;
+		// std::cout << "numfds: " <<  num_fds <<std::endl;
 		for (int i = 0; i < num_fds; i++)
 		{
 			// sleep(1);
@@ -84,14 +90,16 @@ int Server::main()
 			{
 				while (new_sd != -1)
 				{
+					// std::cout << "!!!!!!!!!!!!!!!!!!!" <<  num_fds <<std::endl;
 					new_sd = accept(main_fd, NULL, NULL);
 					if (new_sd < 0)
 					{
+						// std::cout << "breaking bad"  <<std::endl;
 						break;
 					}
-				fds.push_back((pollfd){new_sd, POLLIN | POLLOUT | POLLHUP, 0}); // добавляем не главный сервер
-				current_size++;
-				// std::cout << "here " << std::endl;
+					fds.push_back((pollfd){new_sd, POLLIN | POLLOUT | POLLHUP, 0}); // добавляем не главный сервер
+					current_size++;
+					// std::cout << "here " << std::endl;
 				}
 			}
 			else
@@ -105,6 +113,7 @@ int Server::main()
 
 		}
 	}
+	return (0);
 }
 
 
@@ -123,29 +132,70 @@ void Server::sendback(int fd)
 
 void Server::receive(int fd)
 {
-	Postman my_postman;
+	
     char msg[BUFFER_SIZE];
+	int rc;
 
-    bzero(&msg, sizeof(msg));
-    if (recv(fd, &msg, BUFFER_SIZE - 1, 0) < 0) {
-        std::cerr << "recv() failure" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    my_postman.sendRequest(fd, msg);
+    // bzero(&msg, sizeof(msg));
+    // if (recv(fd, &msg, BUFFER_SIZE - 1, 0) < 0) {
+    //     std::cerr << "recv() failure" << std::endl;
+    //     exit(EXIT_FAILURE);
+    // }
+	// else {
+	// 	std::cerr << "Connected !!! " << std::endl;
+
+	// }
+	// std::cout << buffer << std::endl;
+	// rc = send(fd, buffer, strlen(buffer), 0);
+	// // if (rc < 0)
+	// // {
+	// // 	break;
+	// // }
+	
+    // my_postman.sendRequest(fd, msg);
+
+	while(true)
+				{
+					rc = recv(fd, buffer, sizeof(buffer), 0);
+					if (rc < 0)
+					{
+						if (errno != EWOULDBLOCK)
+						{
+						perror("  recv() failed");
+						//   close_conn = TRUE;
+						}
+						break;
+					}
+					if (rc == 0)
+					{
+
+						break;
+				
+					}
+						std::cout << buffer << std::endl;
+					rc = send(fd, buffer, strlen(buffer), 0);
+					if (rc < 0)
+					{
+						break;
+					}
+					}
 }
 
 
-void Server::process_users(pollfd *iter)
+int Server::process_users(pollfd *iter)
 {
+	// std::cerr <<  iter->revents << std::endl;
 	if (iter->revents & POLLHUP) {
 		remove(iter);
 		// break;
 	}
 	if (iter->revents & POLLOUT)
-		sendback(iter->fd);
+		receive(iter->fd);
+		// sendback(iter->fd);
 
 	if (iter->revents & POLLIN)
 		receive(iter->fd);
+	return(0);
 }
 
 
