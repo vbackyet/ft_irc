@@ -104,10 +104,10 @@ int Server::main1()
 			}
 			else
 			{
-				while(true)
+				// while(true)
 				{
 					process_users(&fds[i]);
-					}
+				}
 			}
 
 
@@ -188,7 +188,7 @@ void Server::receive(int fd)
 				
 					}
 					std::cout << buffer << std::endl;
-					sleep(10);
+					// sleep(10);
 					rc = send(fd, buffer, strlen(buffer), 0);
 					if (rc < 0)
 					{
