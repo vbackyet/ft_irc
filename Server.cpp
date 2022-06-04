@@ -209,8 +209,8 @@ int Server::process_users(pollfd *iter)
 		receive(iter->fd);
 		// sendback(iter->fd);
 
-	if (iter->revents & POLLIN)
-		receive(iter->fd);
+	// if (iter->revents & POLLIN)
+	// 	receive(iter->fd);
 	return(0);
 }
 
