@@ -116,6 +116,18 @@ int Server::main1()
 	return (0);
 }
 
+ char* strset(char* str, int c)
+ {
+     char *t = str;
+     while (*str!= 0)
+     {
+         *str= c;
+         str++;
+
+     }
+     return t;
+ }
+
 
 void Server::remove(pollfd *iter)
 {
@@ -153,10 +165,13 @@ void Server::receive(int fd)
 	// // }
 	
     // my_postman.sendRequest(fd, msg);
-
+	// char buffer[1024];
 	while(true)
 				{
-					rc = recv(fd, buffer, sizeof(buffer), 0);
+					bzero(&buffer, sizeof(buffer));
+					rc = recv(fd, &buffer, sizeof(buffer) -1 , 0);
+					
+					// std::cout << buffer << "==" << sizeof(buffer) << std::endl;
 					if (rc < 0)
 					{
 						if (errno != EWOULDBLOCK)
@@ -164,7 +179,7 @@ void Server::receive(int fd)
 						perror("  recv() failed");
 						//   close_conn = TRUE;
 						}
-						break;
+						break;  
 					}
 					if (rc == 0)
 					{
@@ -172,7 +187,8 @@ void Server::receive(int fd)
 						break;
 				
 					}
-						std::cout << buffer << std::endl;
+					std::cout << buffer << std::endl;
+					sleep(10);
 					rc = send(fd, buffer, strlen(buffer), 0);
 					if (rc < 0)
 					{

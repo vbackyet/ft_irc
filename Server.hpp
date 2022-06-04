@@ -52,7 +52,7 @@ class Server {
 		// struct pollfd fds[200];
 
 		char buffer[BUFFER_SIZE];
-	struct sockaddr_in server_address;
+		struct sockaddr_in server_address;
 
 	// struct sockaddr_in server_address;
 
@@ -64,15 +64,4 @@ class Server {
         void sendback(int fd);
         void receive(int fd);
 		int process_users(pollfd *iter);
-	// 	void	start();
-	// 	void	stop();
-
-	// protected:
-	// 	void	init();
-	// 	void	createSocket();
-	// 	void	add();
-	// 	void	remove(std::vector<pollfd>::iterator);
-	// 	void 	receive(int);
-	// 	void 	sendback(int);
-	// 	bool 	processed(int);
 };
