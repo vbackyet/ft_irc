@@ -18,14 +18,22 @@
 #include <netinet/in.h>
 #include <errno.h>
 #include <vector>
+#include "fcntl.h"
 #include "Server.hpp"
 
+
+
+#include "User.hpp"
 #include "Postman.hpp"
-#define DEFAULT_PORT 8006
+#include "UsersService.hpp"
+#define DEFAULT_PORT 8018
 // #define ERROR_S "SERVER ERROR.."
 // #define BUFFER_SIZE 1024
 // #define EXIT_FAILURE 1
 
+
+
+// UserSErvise - это создание юзера 
 
 Server::Server(int argc, char* argv[])
 {
@@ -47,6 +55,10 @@ int Server::main1()
 		std::cerr << "poll failure" << std::endl;
 		exit(EXIT_FAILURE);
 	}
+	if (fcntl(main_fd, F_SETFL, O_NONBLOCK) < 0) {
+		std::cerr << "fcntl nonblock failure" << std::endl;
+		exit(EXIT_FAILURE);
+    }
 	if (main_fd < 0)
 	{
 		std::cout << "Oshibka" << std::endl;
@@ -80,7 +92,7 @@ int Server::main1()
 			perror("  poll() failed");
 			break;
 		}
-		// std::cout << "Puk:" <<current_size << "\n";
+		std::cout << "Puk:" <<current_size << "\n";
 		int num_fds = current_size;
 		// std::cout << "numfds: " <<  num_fds <<std::endl;
 		for (int i = 0; i < num_fds; i++)
@@ -98,16 +110,20 @@ int Server::main1()
 						break;
 					}
 					fds.push_back((pollfd){new_sd, POLLIN | POLLOUT | POLLHUP, 0}); // добавляем не главный сервер
+					if (fcntl(new_sd, F_SETFL, O_NONBLOCK) < 0) {
+						std::cerr << "fcntl nonblock failure" << std::endl;
+						exit(EXIT_FAILURE);
+					}
 					current_size++;
-					// std::cout << "here " << std::endl;
+					std::cout << "here " << std::endl;
 				}
 			}
 			else
 			{
-				// while(true)
-				{
-					process_users(&fds[i]);
-				}
+				// while(true)			
+				std::cout << "UUUUUUUUUUUUUUUUUUU" << std::endl;
+				process_users(&fds[i]);
+				
 			}
 
 
@@ -171,7 +187,7 @@ void Server::receive(int fd)
 					bzero(&buffer, sizeof(buffer));
 					rc = recv(fd, &buffer, sizeof(buffer) -1 , 0);
 					
-					// std::cout << buffer << "==" << sizeof(buffer) << std::endl;
+					std::cout << buffer << "==" << sizeof(buffer) << std::endl;
 					if (rc < 0)
 					{
 						if (errno != EWOULDBLOCK)
@@ -188,19 +204,28 @@ void Server::receive(int fd)
 				
 					}
 					std::cout << buffer << std::endl;
-					// sleep(10);
-					rc = send(fd, buffer, strlen(buffer), 0);
+				
+
+						// rc = _UsersService.receive_command(fd, buffer);
+						// if (rc < 0)
+						// {
+						// 	break;
+						// }
+
+
+											rc = send(fd, buffer, strlen(buffer), 0);
 					if (rc < 0)
 					{
 						break;
 					}
-					}
+				}
 }
 
 
 int Server::process_users(pollfd *iter)
 {
-	// std::cerr <<  iter->revents << std::endl;
+	// std::cout << "PPPP" << std::endl;
+
 	if (iter->revents & POLLHUP) {
 		remove(iter);
 		// break;
@@ -211,8 +236,6 @@ int Server::process_users(pollfd *iter)
 
 	// if (iter->revents & POLLIN)
 	// 	receive(iter->fd);
+
 	return(0);
 }
-
-
-

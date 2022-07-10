@@ -24,8 +24,10 @@
 #include <netinet/in.h>
 #include <errno.h>
 #include <vector>
+#include "UsersService.hpp"
 // #include "../service/Service.hpp"
 #include "Postman.hpp"
+// #include "User.hpp"
 // #define DEFAULT_PORT 8888
 #define ERROR_S "SERVER ERROR.."
 #define BUFFER_SIZE 1024
@@ -41,14 +43,16 @@ class Server {
 		std::vector<pollfd>					_polls;
 
         Postman                             _postman;
-         int argc;
-         char** argv;
+		UsersService						_UsersService;
+        int argc;
+        char** argv;
 
 
 		int main_fd;
 		int server;
 		// pollfd fds[200];
 		std::vector <pollfd> fds;
+		// std::vector <User> users;
 		// struct pollfd fds[200];
 
 		char buffer[BUFFER_SIZE];
